@@ -23,11 +23,7 @@ export default function MyMap() {
 				</Popup>
 			</Marker>
 
-			{/* <Marker position={[51.605, -0.09]}>
-				<Popup>
-					A pretty CSS3 popup. <br /> Easily customizable.
-				</Popup>
-			</Marker> */}
+			
 		</MapContainer>
 	);
 }
