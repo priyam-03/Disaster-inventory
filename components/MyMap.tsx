@@ -4,7 +4,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
-
+import { FaLink } from "react-icons/fa";
 // Import your JSON data
 import data from '../data/test_modified.json'; // Adjust the path as necessary
 
@@ -21,6 +21,7 @@ interface LandslideRecord {
 
 interface Record {
   title: string;
+  link: string;
   landslide_record?: LandslideRecord;
 }
 
@@ -38,7 +39,7 @@ export default function MyMap() {
             <header className="w-full bg-blue-600 text-white py-6">
                 <div className="container mx-auto text-center">
                     <h1 className="text-4xl font-bold">Landslide Records Map</h1>
-                    <p className="mt-2 text-lg">Explore the map to see where landslides have been recorded.</p>
+                    {/* <p className="mt-2 text-lg">Explore the map to see where landslides have been recorded.</p> */}
                 </div>
             </header>
             
@@ -79,10 +80,20 @@ export default function MyMap() {
                                 position={[latitude, longitude]}
                                 icon={customIcon}  // Use the custom icon here
                             >
-                                <Popup>
-                                    <strong>{record.title}</strong><br />
-                                    Coordinates: {latitude}, {longitude}
-                                </Popup>
+                               <Popup>
+                                                <div className="text-center">
+                                                    {record.title && (
+                                                        <strong className="text-lg text-gray-800">{record.title}</strong>
+                                                    )}
+                                                    <br />
+                                                    {record.link && (
+                                                        <a href={record.link} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline flex items-center justify-center mt-2">
+                                                            <FaLink className="mr-2" />
+                                                            <span>Visit Link</span>
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </Popup>
                             </Marker>
                         );
                     }
