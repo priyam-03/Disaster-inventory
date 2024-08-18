@@ -88,7 +88,7 @@ export default function MyMap() {
             
             <main className="container py-4 px-4">
                 {/* Filter Form */}
-                <div className="mb-6 flex flex-wrap items-center">
+                <div className="mb-4 flex flex-wrap items-center">
                     <div className="mr-4">
                         <label className="mr-2 text-blue-700">State:</label>
                         <select
