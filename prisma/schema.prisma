@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Record {
+  id                String           @id @default(auto()) @map("_id") @db.ObjectId
+  title             String
+  landslideRecord   LandslideRecord? @relation(fields: [landslideRecordId], references: [id])
+  landslideRecordId String?          @unique @db.ObjectId
+}
+
+model LandslideRecord {
+  id              String     @id @default(auto()) @map("_id") @db.ObjectId
+  landslideReport String
+  locations       Location[] // No relation fields needed here
+  Record          Record?
+}
+
+model Location {
+  id                String          @id @default(auto()) @map("_id") @db.ObjectId
+  lat               Float
+  lon               Float
+  landslideRecordId String          @db.ObjectId
+  landslideRecord   LandslideRecord @relation(fields: [landslideRecordId], references: [id], onDelete: Cascade)
+}
+
+model Incident {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  url     String
+  date    DateTime @db.Date
+  lat     Float
+  lon     Float
+  state   String
+}

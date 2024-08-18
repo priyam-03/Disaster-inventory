@@ -6,7 +6,7 @@ export default function Home() {
 	// Dynamically import the `MyMap` component.
 	// The loading option provides a loading message.
 	// The ssr option disables server-side rendering.
-	const MyMap = dynamic(() => import("../components/MyMap"), {
+	const MyMap = dynamic(() => import("../components/newMap"), {
 		loading: () => <p>A map is loading</p>,
 		ssr: false,
 	});
