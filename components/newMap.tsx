@@ -86,7 +86,7 @@ export default function MyMap() {
                 </div>
             </header>
             
-            <main className="container py-10 px-4">
+            <main className="container py-4 px-4">
                 {/* Filter Form */}
                 <div className="mb-6 flex flex-wrap items-center">
                     <div className="mr-4">
