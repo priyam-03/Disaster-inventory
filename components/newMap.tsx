@@ -82,7 +82,7 @@ export default function MyMap() {
         <div className="min-h-screen flex flex-col items-center bg-gray-100">
             <header className="w-full bg-blue-600 text-white py-6">
                 <div className="container mx-auto text-center">
-                    <h1 className="text-4xl font-bold">Incident Map</h1>
+                    <h1 className="text-4xl font-bold">Landslide Records Map</h1>
                 </div>
             </header>
             
