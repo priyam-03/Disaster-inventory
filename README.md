@@ -50,11 +50,13 @@ Before you begin, ensure you have the following installed:
 2. **Install dependencies:**
 
    Using npm:
+
    ```bash
    npm install
    ```
 
    Using yarn:
+
    ```bash
    yarn install
    ```
@@ -75,11 +77,10 @@ Create a `.env` file in the root directory and add the following environment var
 
 ```plaintext
 DATABASE_URL="mongodb+srv://<username>:<password>@cluster0.mongodb.net/<database-name>?retryWrites=true&w=majority"
-NEXTAUTH_SECRET="your-nextauth-secret"
+
 ```
 
 - `DATABASE_URL`: Your MongoDB connection string.
-- `NEXTAUTH_SECRET`: A secret string for NextAuth.js (if you plan to use it for authentication).
 
 ## Running the Project
 
