@@ -55,7 +55,7 @@ export default function MyMap() {
     const [incidents, setIncidents] = useState<Incident[]>([]);
     const [selectedState, setSelectedState] = useState<string>('');
     const [selectedMonth, setSelectedMonth] = useState<string>('');
-    const [selectedYear, setSelectedYear] = useState<string>('');
+    const [selectedYear, setSelectedYear] = useState<string>('2024');
 
     const fetchData = async () => {
         const params = new URLSearchParams();
