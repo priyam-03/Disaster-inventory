@@ -24,6 +24,26 @@ const indianStates = [
   "Delhi", "Puducherry"
 ];
 
+const months = [
+  { value: "01", label: "January" },
+  { value: "02", label: "February" },
+  { value: "03", label: "March" },
+  { value: "04", label: "April" },
+  { value: "05", label: "May" },
+  { value: "06", label: "June" },
+  { value: "07", label: "July" },
+  { value: "08", label: "August" },
+  { value: "09", label: "September" },
+  { value: "10", label: "October" },
+  { value: "11", label: "November" },
+  { value: "12", label: "December" }
+];
+
+const years = Array.from(new Array(30), (_, index) => {
+  const year = new Date().getFullYear() - index;
+  return year.toString();
+});
+
 const customIcon = L.icon({
   iconUrl: "/map-marker.png", 
   iconSize: [30, 30],
@@ -34,24 +54,28 @@ const customIcon = L.icon({
 export default function MyMap() {
     const [incidents, setIncidents] = useState<Incident[]>([]);
     const [selectedState, setSelectedState] = useState<string>('');
-    const [month, setMonth] = useState<string>('');
+    const [selectedMonth, setSelectedMonth] = useState<string>('');
+    const [selectedYear, setSelectedYear] = useState<string>('');
 
     const fetchData = async () => {
         const params = new URLSearchParams();
         if (selectedState) params.append('state', selectedState);
-        if (month) params.append('month', month);
+        if (selectedMonth && selectedYear) {
+            params.append('month', `${selectedYear}-${selectedMonth}`);
+        }
         const response = await fetch(`/api/incidents?${params.toString()}`);
         const data = await response.json();
         setIncidents(data);
     };
 
     useEffect(() => {
-        fetchData(); // Fetch data when component mounts or state/month changes
-    }, [selectedState, month]);
+        fetchData(); // Fetch data when component mounts or state/month/year changes
+    }, [selectedState, selectedMonth, selectedYear]);
 
     const clearFilters = () => {
         setSelectedState('');
-        setMonth('');
+        setSelectedMonth('');
+        setSelectedYear('');
     };
 
     return (
@@ -81,12 +105,30 @@ export default function MyMap() {
 
                     <div className="mr-4">
                         <label className="mr-2 text-blue-700">Month:</label>
-                        <input
-                            type="month"
-                            value={month}
-                            onChange={(e) => setMonth(e.target.value)}
+                        <select
+                            value={selectedMonth}
+                            onChange={(e) => setSelectedMonth(e.target.value)}
                             className="border p-2 text-blue-700 bg-white"
-                        />
+                        >
+                            <option value="">Select a month</option>
+                            {months.map((month) => (
+                                <option key={month.value} value={month.value}>{month.label}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="mr-4">
+                        <label className="mr-2 text-blue-700">Year:</label>
+                        <select
+                            value={selectedYear}
+                            onChange={(e) => setSelectedYear(e.target.value)}
+                            className="border p-2 text-blue-700 bg-white"
+                        >
+                            <option value="">Select a year</option>
+                            {years.map((year) => (
+                                <option key={year} value={year}>{year}</option>
+                            ))}
+                        </select>
                     </div>
 
                     <div className="flex items-center">
