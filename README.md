@@ -1,4 +1,4 @@
-# Incident Map
+# Landslides Map
 
 Incident Map is a web application that visualizes incidents on a map, allowing users to filter incidents by state, month, and year. The project is built using Next.js, TypeScript, Prisma, TailwindCSS, and MongoDB.
 
@@ -98,24 +98,6 @@ yarn dev
 
 This command starts the Next.js development server on `http://localhost:3000`.
 
-## Folder Structure
-
-```plaintext
-.
-├── prisma              # Prisma schema and migrations
-│   └── schema.prisma   # Prisma schema file
-├── public              # Public assets and static files
-├── src
-│   ├── pages           # Next.js pages
-│   ├── components      # React components
-│   ├── styles          # TailwindCSS styles and configurations
-│   ├── lib             # Utility functions and database connections
-│   └── prisma          # Prisma client setup
-├── .env                # Environment variables
-├── next.config.js      # Next.js configuration file
-├── tailwind.config.js  # TailwindCSS configuration file
-└── tsconfig.json       # TypeScript configuration file
-```
 
 ## Contributing
 
