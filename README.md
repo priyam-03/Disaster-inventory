@@ -27,6 +27,7 @@ Incident Map is a web application that visualizes incidents on a map, allowing u
 - **Prisma**: ORM (Object-Relational Mapping) for connecting to MongoDB.
 - **MongoDB**: NoSQL database for storing incident data.
 - **TailwindCSS**: Utility-first CSS framework for styling.
+- **Vercel**: For Deployment.
 
 ## Setup Instructions
 
