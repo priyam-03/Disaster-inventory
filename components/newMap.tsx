@@ -1,5 +1,7 @@
-'use client'
-import { useEffect, useState } from 'react';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -51,136 +53,155 @@ const customIcon = L.icon({
   popupAnchor: [0, -30], 
 });
 
+const fetchIncidents = async (state: string, month: string, year: string) => {
+  const params = new URLSearchParams();
+  if (state) params.append('state', state);
+  if (month && year) {
+    params.append('month', `${year}-${month}`);
+  }
+  const response = await fetch(`/api/incidents?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch incidents');
+  }
+  return response.json();
+};
+
 export default function MyMap() {
-    const [incidents, setIncidents] = useState<Incident[]>([]);
-    const [selectedState, setSelectedState] = useState<string>('');
-    const [selectedMonth, setSelectedMonth] = useState<string>('');
-    const [selectedYear, setSelectedYear] = useState<string>('2024');
+  const queryClient = useQueryClient(); // Access the query client to interact with the cache
+  const [selectedState, setSelectedState] = useState<string>('');
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [selectedYear, setSelectedYear] = useState<string>('2024');
+  const [initialDataLoaded, setInitialDataLoaded] = useState<boolean>(false);
 
-    const fetchData = async () => {
-        const params = new URLSearchParams();
-        if (selectedState) params.append('state', selectedState);
-        if (selectedMonth && selectedYear) {
-            params.append('month', `${selectedYear}-${selectedMonth}`);
+  const queryKey = ['incidents', selectedState, selectedMonth, selectedYear];
+
+  const { data: incidents = [], isLoading, error } = useQuery(
+    {
+      queryKey,
+      queryFn: async () => {
+        const cachedData = queryClient.getQueryData<Incident[]>(queryKey);
+        if (cachedData) {
+          return cachedData; // Use cached data if available
+        } else {
+          const data = await fetchIncidents(selectedState, selectedMonth, selectedYear);
+          queryClient.setQueryData(queryKey, data); // Cache the fetched data
+          return data;
         }
-        const response = await fetch(`/api/incidents?${params.toString()}`);
-        const data = await response.json();
-        setIncidents(data);
-    };
+      },
+      // staleTime: 1000,
+      
+    }
+  );
 
-    useEffect(() => {
-        fetchData(); // Fetch data when component mounts or state/month/year changes
-    }, [selectedState, selectedMonth, selectedYear]);
+  useEffect(() => {
+    // This useEffect ensures the map renders immediately without data.
+    setInitialDataLoaded(true);
+  }, []);
 
-    const clearFilters = () => {
-        setSelectedState('');
-        setSelectedMonth('');
-        setSelectedYear('');
-    };
+  const clearFilters = () => {
+    setSelectedState('');
+    setSelectedMonth('');
+    setSelectedYear('');
+  };
 
-    return (
-        <div className="min-h-screen flex flex-col items-center bg-gray-100">
-            <header className="w-full bg-blue-600 text-white py-6">
-                <div className="container mx-auto text-center">
-                    <h1 className="text-4xl font-bold">Landslide Records Map</h1>
-                </div>
-            </header>
-            
-            <main className="container py-4 px-4">
-                {/* Filter Form */}
-                <div className="mb-4 flex flex-wrap items-center">
-                    <div className="mr-4">
-                        <label className="mr-2 text-blue-700">State:</label>
-                        <select
-                            value={selectedState}
-                            onChange={(e) => setSelectedState(e.target.value)}
-                            className="border p-2 text-blue-700 bg-white"
-                        >
-                            <option value="">Select a state</option>
-                            {indianStates.map((state) => (
-                                <option key={state} value={state}>{state}</option>
-                            ))}
-                        </select>
-                    </div>
+  return (
+    <div className="min-h-screen flex flex-col items-center bg-gray-100">
+     
+      
+      <main className="container py-4 px-4">
+        {/* Filter Form */}
+        <div className="mb-4 flex flex-wrap items-center">
+          <div className="mr-4">
+            <label className="mr-2 text-blue-700">State:</label>
+            <select
+              value={selectedState}
+              onChange={(e) => setSelectedState(e.target.value)}
+              className="border p-2 text-blue-700 bg-white"
+            >
+              <option value="">Select a state</option>
+              {indianStates.map((state) => (
+                <option key={state} value={state}>{state}</option>
+              ))}
+            </select>
+          </div>
 
-                    <div className="mr-4">
-                        <label className="mr-2 text-blue-700">Month:</label>
-                        <select
-                            value={selectedMonth}
-                            onChange={(e) => setSelectedMonth(e.target.value)}
-                            className="border p-2 text-blue-700 bg-white"
-                        >
-                            <option value="">Select a month</option>
-                            {months.map((month) => (
-                                <option key={month.value} value={month.value}>{month.label}</option>
-                            ))}
-                        </select>
-                    </div>
+          <div className="mr-4">
+            <label className="mr-2 text-blue-700">Month:</label>
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="border p-2 text-blue-700 bg-white"
+            >
+              <option value="">Select a month</option>
+              {months.map((month) => (
+                <option key={month.value} value={month.value}>{month.label}</option>
+              ))}
+            </select>
+          </div>
 
-                    <div className="mr-4">
-                        <label className="mr-2 text-blue-700">Year:</label>
-                        <select
-                            value={selectedYear}
-                            onChange={(e) => setSelectedYear(e.target.value)}
-                            className="border p-2 text-blue-700 bg-white"
-                        >
-                            <option value="">Select a year</option>
-                            {years.map((year) => (
-                                <option key={year} value={year}>{year}</option>
-                            ))}
-                        </select>
-                    </div>
+          <div className="mr-4">
+            <label className="mr-2 text-blue-700">Year:</label>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              className="border p-2 text-blue-700 bg-white"
+            >
+              <option value="">Select a year</option>
+              {years.map((year) => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
 
-                    <div className="flex items-center">
-                        <button
-                            onClick={fetchData}
-                            className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
-                        >
-                            Apply Filters
-                        </button>
-                        <button
-                            onClick={clearFilters}
-                            className="bg-gray-400 text-white px-4 py-2 rounded"
-                        >
-                            Clear Filters
-                        </button>
-                    </div>
-                </div>
-
-                <div className="w-full h-1000 rounded-lg overflow-hidden shadow-lg">
-                    <MapContainer
-                        center={[29.380539, 79.467877]}
-                        zoom={7.5}
-                        scrollWheelZoom={true}
-                        style={{ height: "600px", width: "100%" }}
-                    >
-                        <TileLayer
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        />
-
-                        {incidents.map((incident: Incident) => (
-                            <Marker
-                                key={incident.id}
-                                position={[incident.lat, incident.lon]}
-                                icon={customIcon}
-                            >
-                                <Popup>
-                                    <a href={incident.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                                        View Incident Details
-                                    </a>
-                                </Popup>
-                            </Marker>
-                        ))}
-                    </MapContainer>
-                </div>
-            </main>
-
-            <footer className="w-full bg-blue-600 text-white py-4 mt-auto">
-                <div className="container mx-auto text-center">
-                    <p>&copy; 2024 Incident Records. All rights reserved.</p>
-                </div>
-            </footer>
+          <div className="flex items-center">
+            <button
+              onClick={() => setInitialDataLoaded(true)}
+              className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
+            >
+              Apply Filters
+            </button>
+            <button
+              onClick={clearFilters}
+              className="bg-gray-400 text-white px-4 py-2 rounded"
+            >
+              Clear Filters
+            </button>
+          </div>
         </div>
-    );
+
+        <div className="w-full h-1000 rounded-lg overflow-hidden shadow-lg">
+          <MapContainer
+            center={[29.380539, 79.467877]}
+            zoom={7.5}
+            scrollWheelZoom={true}
+            style={{ height: "600px", width: "100%" }}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+
+            {!isLoading && incidents.map((incident: Incident) => (
+              <Marker
+                key={incident.id}
+                position={[incident.lat, incident.lon]}
+                icon={customIcon}
+              >
+                <Popup>
+                  <a href={incident.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                    View Incident Details
+                  </a>
+                </Popup>
+              </Marker>
+            ))}
+          </MapContainer>
+
+          {isLoading && <p>Loading incidents...</p>}
+          {error && <p>Error loading incidents: {error.message}</p>}
+        </div>
+      </main>
+
+     
+    </div>
+  );
 }

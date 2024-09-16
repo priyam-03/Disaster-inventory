@@ -1,32 +1,50 @@
-generator client {
-  provider = "prisma-client-js"
-}
+// prisma/schema.prisma
 
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
-model Record {
-  id                String           @id @default(auto()) @map("_id") @db.ObjectId
-  title             String
-  landslideRecord   LandslideRecord? @relation(fields: [landslideRecordId], references: [id])
-  landslideRecordId String?          @unique @db.ObjectId
+generator client {
+  provider = "prisma-client-js"
 }
 
-model LandslideRecord {
-  id              String     @id @default(auto()) @map("_id") @db.ObjectId
-  landslideReport String
-  locations       Location[] // No relation fields needed here
-  Record          Record?
+model articles_mod {
+  id              String              @id @default(auto()) @map("_id") @db.ObjectId
+  title           String
+  link            String
+  published       String
+  summary         String
+  contents        String
+  landslide_record LandslideRecord?  
+  date            DateTime? @db.Date  
 }
 
-model Location {
-  id                String          @id @default(auto()) @map("_id") @db.ObjectId
-  lat               Float
-  lon               Float
-  landslideRecordId String          @db.ObjectId
-  landslideRecord   LandslideRecord @relation(fields: [landslideRecordId], references: [id], onDelete: Cascade)
+type LandslideRecord {
+  landslide_report String?
+  source_name      String?
+  locations        Location[]         
+}
+
+type Location {
+  nearby                 String?
+  road_name              String?
+  village_town           String?
+  village_name_town_name String?
+  area_name              String?
+  district_name          String?
+  state_name             String?
+  landslide_type         String?
+  casualty_description   String?
+  landslide_size         String?
+  triggering_factor      String?
+  infrastructural_damage String?
+  date                   String?        // Date stored as string in your JSON
+  time                   String?
+  pincode                Int?
+  lat                    Float?
+  lon                   Float?
+  address                String?
 }
 
 model Incident {
