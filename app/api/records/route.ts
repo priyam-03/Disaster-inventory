@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../lib/db';
-
+export const dynamic = 'force-dynamic'; 
 // Helper function to parse and apply filters
 function buildFilters(year: string|null, month: string|null) {
   const filters: any = {
