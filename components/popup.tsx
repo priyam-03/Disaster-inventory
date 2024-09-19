@@ -1,21 +1,23 @@
 import { useState } from "react";
 import { FaLink, FaExpand, FaCompress } from "react-icons/fa";
 import { Popup } from "react-leaflet";
+import styles from '../styles/popup.module.css';  // Importing CSS module
 
-
-import { Record, Location, LandslideRecord } from "../types/records";
+import { Record, Location } from "../types/records";
 
 const PopUp = ({ record, location, locIndex }: { record: Record, location: Location, locIndex: number }) => {
-
   const [isMaximized, setIsMaximized] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Function to toggle the expanded/collapsed state
+  // Toggle between maximized and minimized state
+  const toggleMaximize = () => {
+    setIsMaximized(!isMaximized);
+  };
+
   const toggleExpansion = () => {
     setIsExpanded(!isExpanded);
   };
 
-  // Limiting the content to two lines (or about 150 characters for simplicity)
   const truncateContent = (content: string) => {
     const maxChars = 150;
     if (content.length > maxChars) {
@@ -24,26 +26,22 @@ const PopUp = ({ record, location, locIndex }: { record: Record, location: Locat
     return content;
   };
 
-  const toggleMaximize = () => {
-    setIsMaximized(!isMaximized);
-  };
-
   return (
-    <Popup >
-      <div className={`popup-container ${isMaximized ? "maximized" : ""}`}>
-        <div className="popup-header">
-          <div className="popup-title">
-            {record.title && <strong className="text-lg text-gray-800">{record.title}</strong>}
-          </div>
-          <button className="popup-toggle" onClick={toggleMaximize}>
-            {isMaximized ? <FaCompress /> : <FaExpand />}
-          </button>
+    <Popup>
+      <div className={`${styles.popupContainer} ${isMaximized ? styles.maximized : ''}`}>
+      <div className={styles.popupHeader}>
+        <span className={styles.popupTitle}>{record.title }</span>
+        {/* Button to toggle between maximized and minimized */}
+        <button className={styles.popupToggle} onClick={toggleMaximize}>
+          {isMaximized ? '−' : '+'} {/* Change icon based on state */}
+        </button>
         </div>
 
-        <div className="popup-content">
-          <p>Location #{locIndex + 1}</p> {/* Display the location index */}
+        <div className={styles.popupContent}>
+         
           {location.village_name_town_name && <p>Village/Town: {location.village_name_town_name}</p>}
           {location.area_name && <p>Area: {location.area_name}</p>}
+          {location.address && <p>Address: {location.address}</p>}
 
           {record.link && (
             <a
@@ -60,16 +58,17 @@ const PopUp = ({ record, location, locIndex }: { record: Record, location: Locat
           {record.published && <p className="text-gray-600 mt-2">Published on: {record.published}</p>}
 
           {record.contents && (
-            <p className="text-gray-600 mt-2">
-              {isExpanded ? record.contents : truncateContent(record.contents)}
-              <br />
+            <div className={styles.popupContentsText}>
+              <p className="text-gray-600 mt-2">
+                {isExpanded ? record.contents : truncateContent(record.contents)}
+              </p>
               <button
                 onClick={toggleExpansion}
                 className="text-blue-500 hover:underline mt-2"
               >
                 {isExpanded ? "See Less" : "See More"}
               </button>
-            </p>
+            </div>
           )}
         </div>
       </div>

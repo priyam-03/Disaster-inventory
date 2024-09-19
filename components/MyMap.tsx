@@ -7,7 +7,6 @@ import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import { FaLink } from "react-icons/fa";
 import PopUp from "./popup";  // Import the custom Popup component
-import "./MyMap.css";
 import { Record, Location } from "../types/records";
 
 // Define available months and years for filters

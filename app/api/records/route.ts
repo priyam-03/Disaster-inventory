@@ -3,11 +3,7 @@ import { db } from '../../../lib/db';
 export const dynamic = 'force-dynamic'; 
 // Helper function to parse and apply filters
 function buildFilters(year: string|null, month: string|null) {
-  const filters: any = {
- 
-   
-  
-  };
+  const filters: any = {};
   if (filters.NOT && filters.NOT.landslide_record === null) {
     filters.landslide_record = {
       locations: {
@@ -15,7 +11,6 @@ function buildFilters(year: string|null, month: string|null) {
       },
     };
   }
-
   if (year) {
     const startDate = new Date(`${year}-01-01T00:00:00Z`);
     const endDate = new Date(`${year}-12-31T23:59:59Z`);
@@ -30,15 +25,11 @@ function buildFilters(year: string|null, month: string|null) {
     const endDate = new Date(startDate);
     endDate.setMonth(startDate.getMonth() + 1); // Go to the next month
     endDate.setDate(0); // Last day of the previous month
-
     filters.date = {
       gte: startDate,
       lte: endDate,
     };
   }
-
-  
-
   return filters;
 }
 
@@ -59,24 +50,16 @@ export async function GET(req: Request) {
     });
     const filtered_articles = articles.map((article) => {
       if(state){
-      if(article.landslide_record){
-           const locations = article.landslide_record.locations;
-           const filtered_location = locations.filter((location) => location.state_name == state);
-           
-              article.landslide_record.locations = filtered_location
-              return article;
-           
-           
-      }
-
-        
-        // else{
-        //   return article.landslide_record.locations?.length>0;
-        // }
+        if(article.landslide_record){
+            const locations = article.landslide_record.locations;
+            const filtered_location = locations.filter((location) => location.state_name == state);
+            article.landslide_record.locations = filtered_location
+            return article;
+        }
       }
       else return article;
     })
-    
+    console.log(filtered_articles.length)
     return NextResponse.json({ filtered_articles });
   } catch (error) {
     console.error('Error fetching data:', error);
