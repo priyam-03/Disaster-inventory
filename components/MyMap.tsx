@@ -1,13 +1,25 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
-import { FaLink } from "react-icons/fa";
-import PopUp from "./popup";  // Import the custom Popup component
+import { FaSpinner } from "react-icons/fa"; // For the loading spinner
+import PopUp from "./popup";  // Custom popup component
 import { Record, Location } from "../types/records";
+
+// Utility function for debouncing
+const debounce = (func: Function, delay: number) => {
+  let timerId: NodeJS.Timeout;
+  return (...args: any[]) => {
+    if (timerId) clearTimeout(timerId);
+    timerId = setTimeout(() => {
+      func(...args);
+    }, delay);
+  };
+};
 
 // Define available months and years for filters
 const months = [
@@ -37,7 +49,16 @@ const indianStates = [
   "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", 
   "Uttar Pradesh", "Uttarakhand", "West Bengal", "Delhi"
 ];
-
+const fetchRecords = async (state: string, month: string, year: string) => {
+  const params = new URLSearchParams();
+  if (state) params.append("state", state);
+  if (year) params.append("year", year);
+  if (month) params.append("month", month);
+  console.log(params);
+  const response = await fetch(`/api/records?${params.toString()}`);
+  if (!response.ok) throw new Error("Failed to fetch records");
+  return response.json();
+};
 // DynamicIcon component to handle zoom-level based icon size
 const DynamicIcon = ({ zoomLevel }: { zoomLevel: number }) => {
   // Calculate icon size based on zoom level
@@ -52,52 +73,39 @@ const DynamicIcon = ({ zoomLevel }: { zoomLevel: number }) => {
 };
 
 export default function MyMap() {
-  const [records, setRecords] = useState<Record[]>([]);
-  const [zoomLevel, setZoomLevel] = useState(5.5);  // Initial zoom level
+  const queryClient = useQueryClient(); // For cache interaction
+  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
+  const [selectedState, setSelectedState] = useState<string>("");
+  const [zoomLevel, setZoomLevel] = useState(5.5); // Initial zoom level
 
-  // State for the filters
-  const [selectedYear, setSelectedYear] = useState<string>('');
-  const [selectedMonth, setSelectedMonth] = useState<string>('');
-  const [selectedState, setSelectedState] = useState<string>('');
+  const queryKey = ["records", selectedState, selectedMonth, selectedYear];
 
-  // Fetch data from API with filters
-  const fetchData = async () => {
-    const params = new URLSearchParams();
-    if (selectedYear) params.append('year', selectedYear);
-    if (selectedMonth) params.append('month', selectedMonth);
-    if (selectedState) params.append('state', selectedState);
+  const { data: records = [], isLoading, error } = useQuery(
+    {
+      queryKey,
+      queryFn: async () => {
+        const cachedData = queryClient.getQueryData<Record[]>(queryKey);
+        if (cachedData) return cachedData; // Use cached data if available
+        const data = await fetchRecords(selectedState, selectedMonth, selectedYear);
+        queryClient.setQueryData(queryKey, data); // Cache fetched data
+        console.log(data);
+        return data.filtered_articles;
+      },
+    }
+  );
 
-    const response = await fetch(`/api/records?${params.toString()}`);
-    const data = await response.json();
-
-    setRecords(data.filtered_articles);
-    console.log(records)
-  };
-  const customIcon = L.icon({
-    iconUrl: "/map-marker.png", 
-    iconSize: [30, 30],
-    iconAnchor: [15, 30], 
-    popupAnchor: [0, -30], 
-  });
-  useEffect(() => {
-    fetchData();
-  }, [selectedYear, selectedMonth, selectedState]);
-
-  // Custom hook to handle zoom level changes
   const ZoomHandler = () => {
     useMapEvents({
-      zoomend: (e) => {
-        const map = e.target;
-        setZoomLevel(map.getZoom());
-      }
+      zoomend: (e) => setZoomLevel(e.target.getZoom()),
     });
     return null;
   };
 
   const clearFilters = () => {
-    setSelectedYear('');
-    setSelectedMonth('');
-    setSelectedState('');
+    setSelectedYear("");
+    setSelectedMonth("");
+    setSelectedState("");
   };
 
   return (
@@ -148,12 +156,12 @@ export default function MyMap() {
           </div>
 
           <div className="flex items-center">
-            <button
-              onClick={fetchData}
+            {/* <button
+              onClick={() => queryClient.invalidateQueries(queryKey)}
               className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
             >
               Apply Filters
-            </button>
+            </button> */}
             <button
               onClick={clearFilters}
               className="bg-gray-400 text-white px-4 py-2 rounded"
@@ -163,49 +171,44 @@ export default function MyMap() {
           </div>
         </div>
 
-        <div className="w-full h-1000 rounded-lg overflow-hidden shadow-lg">
-          <MapContainer
-            center={[22.4989, 88.3714]} 
-            zoom={zoomLevel}
-            scrollWheelZoom={true}
-            style={{ height: "600px", width: "100%" }}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+        <div className="relative w-full h-1000 rounded-lg overflow-hidden shadow-lg">
+          {/* Apply blur if loading */}
+          <div className={`${isLoading ? 'blur-sm' : ''} transition-filter duration-300`}>
+            <MapContainer
+              center={[22.4989, 88.3714]} 
+              zoom={zoomLevel}
+              scrollWheelZoom={true}
+              style={{ height: "600px", width: "100%" }}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <ZoomHandler />
 
-            {/* Handle zoom events to update zoom level */}
-            <ZoomHandler />
+              {/* Display records with markers */}
+              {!isLoading && records.map((record: Record, index: number) => (
+                record.landslide_record?.locations?.map((location: Location, locIndex: number) => (
+                  <Marker
+                    key={`${index}-${locIndex}`}
+                    position={[location.lat , location.lon]}
+                    icon={DynamicIcon({ zoomLevel })}
+                  >
+                    <PopUp record={record} location={location} locIndex={locIndex} />
+                  </Marker>
+                ))
+              ))}
+            </MapContainer>
+          </div>
 
-            {/* Iterate over the data to create Markers */}
-            {records.map((record: Record, index: number) =>
-              record.landslide_record &&
-              record.landslide_record.locations &&
-              record.landslide_record.locations.length > 0
-                ? record.landslide_record.locations.map(
-                    (location: Location, locIndex: number) => {
-                      const latitude = location.lat;
-                      const longitude = location.lon;
+          {/* Loading Spinner */}
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50">
+              <FaSpinner className="animate-spin text-blue-700 text-4xl" />
+            </div>
+          )}
 
-                      if (latitude !== undefined && longitude !== undefined) {
-                        return (
-                          <Marker
-                            key={`${index}-${locIndex}`}
-                            position={[latitude, longitude]}
-                            icon={DynamicIcon({ zoomLevel })}  // Pass the dynamic icon size
-                          >
-                            {/* Pass record, location, and locIndex to PopUp */}
-                            <PopUp record={record} location={location} locIndex={locIndex} />
-                          </Marker>
-                        );
-                      }
-                      return null; // Skip if lat/lon are not available
-                    }
-                  )
-                : null
-            )}
-          </MapContainer>
+          {error && <p>Error loading records: {error.message}</p>}
         </div>
       </main>
     </div>

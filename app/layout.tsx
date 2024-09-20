@@ -26,9 +26,9 @@ export default function RootLayout({
       >
         <Container>
           <Header />
-          {/* <ReactQueryProvider> */}
+          <ReactQueryProvider>
           <main>{children}</main>
-          {/* </ReactQueryProvider> */}
+          </ReactQueryProvider>
           <Footer />
         </Container>
       </body>

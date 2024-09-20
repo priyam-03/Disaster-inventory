@@ -14,8 +14,8 @@ export interface Location {
     date?: string; // Date is stored as a string
     time?: string;
     pincode?: number;
-    lat?: number;
-    lon?: number;
+    lat: number;
+    lon: number;
     address?: string;
   }
   

@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../lib/db';
-export const dynamic = 'force-dynamic'; 
+import redis from '../../../lib/redis'; // Redis client
+export const dynamic = 'force-dynamic';
+
 // Helper function to parse and apply filters
-function buildFilters(year: string|null, month: string|null) {
+function buildFilters(year: string | null, month: string | null) {
   const filters: any = {};
   if (filters.NOT && filters.NOT.landslide_record === null) {
     filters.landslide_record = {
@@ -33,6 +35,11 @@ function buildFilters(year: string|null, month: string|null) {
   return filters;
 }
 
+// Helper function to generate a unique cache key
+function generateCacheKey(year: string | null, month: string | null, state: string | null) {
+  return `articles:${year || 'all'}:${month || 'all'}:${state || 'all'}`;
+}
+
 // GET request to fetch all NewsArticles with optional filters
 export async function GET(req: Request) {
   try {
@@ -41,6 +48,16 @@ export async function GET(req: Request) {
     const month = searchParams.get('month');
     const state = searchParams.get('state');
 
+    // Generate a unique cache key based on the request parameters
+    const cacheKey = generateCacheKey(year, month, state);
+
+    // Check if the data is cached in Redis
+    const cachedData = await redis.get(cacheKey);
+    if (cachedData) {
+      console.log('Returning cached data');
+      return NextResponse.json({ filtered_articles: JSON.parse(cachedData) });
+    }
+
     // Build filters dynamically based on the optional parameters
     const filters = buildFilters(year, month);
 
@@ -48,18 +65,26 @@ export async function GET(req: Request) {
     const articles = await db.articles_mod.findMany({
       where: filters,
     });
+
+    // Filter the articles by state if the state parameter is provided
     const filtered_articles = articles.map((article) => {
-      if(state){
-        if(article.landslide_record){
-            const locations = article.landslide_record.locations;
-            const filtered_location = locations.filter((location) => location.state_name == state);
-            article.landslide_record.locations = filtered_location
-            return article;
+      if (state) {
+        if (article.landslide_record) {
+          const locations = article.landslide_record.locations;
+          const filtered_location = locations.filter((location) => location.state_name === state);
+          article.landslide_record.locations = filtered_location;
+          return article;
         }
+      } else {
+        return article;
       }
-      else return article;
-    })
-    console.log(filtered_articles.length)
+    });
+
+    console.log(`Fetched ${filtered_articles.length} articles from the database`);
+
+    // Cache the fetched data in Redis with an expiry (e.g., 1 hour = 3600 seconds)
+    await redis.set(cacheKey, JSON.stringify(filtered_articles), 'EX', 3600);
+
     return NextResponse.json({ filtered_articles });
   } catch (error) {
     console.error('Error fetching data:', error);
