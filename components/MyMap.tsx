@@ -173,7 +173,7 @@ export default function MyMap() {
 
         <div className="relative w-full h-1000 rounded-lg overflow-hidden shadow-lg">
           {/* Apply blur if loading */}
-          <div className={`${isLoading ? 'blur-sm' : ''} transition-filter duration-300`}>
+          <div className={`${isLoading ? 'blur-0' : ''} transition-filter duration-300`}>
             <MapContainer
               center={[22.4989, 88.3714]} 
               zoom={zoomLevel}
