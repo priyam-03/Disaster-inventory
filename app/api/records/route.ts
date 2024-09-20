@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../lib/db';
-import redis from '../../../lib/redis'; // Redis client
+// import redis from '../../../lib/redis'; // Redis client
 export const dynamic = 'force-dynamic';
 
 // Helper function to parse and apply filters
@@ -49,14 +49,14 @@ export async function GET(req: Request) {
     const state = searchParams.get('state');
 
     // Generate a unique cache key based on the request parameters
-    const cacheKey = generateCacheKey(year, month, state);
+    // const cacheKey = generateCacheKey(year, month, state);
 
     // Check if the data is cached in Redis
-    const cachedData = await redis.get(cacheKey);
-    if (cachedData) {
-      console.log('Returning cached data');
-      return NextResponse.json({ filtered_articles: JSON.parse(cachedData) });
-    }
+    // const cachedData = await redis.get(cacheKey);
+    // if (cachedData) {
+    //   console.log('Returning cached data');
+    //   return NextResponse.json({ filtered_articles: JSON.parse(cachedData) });
+    // }
 
     // Build filters dynamically based on the optional parameters
     const filters = buildFilters(year, month);
@@ -83,7 +83,7 @@ export async function GET(req: Request) {
     console.log(`Fetched ${filtered_articles.length} articles from the database`);
 
     // Cache the fetched data in Redis with an expiry (e.g., 1 hour = 3600 seconds)
-    await redis.set(cacheKey, JSON.stringify(filtered_articles), 'EX', 3600);
+    // await redis.set(cacheKey, JSON.stringify(filtered_articles), 'EX', 3600);
 
     return NextResponse.json({ filtered_articles });
   } catch (error) {
