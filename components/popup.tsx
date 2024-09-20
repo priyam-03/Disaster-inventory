@@ -58,18 +58,19 @@ const PopUp = ({ record, location, locIndex }: { record: Record, location: Locat
           {record.published && <p className="text-gray-600 mt-2">Published on: {record.published}</p>}
 
           {record.contents && (
-            <div className={styles.popupContentsText}>
-              <p className="text-gray-600 mt-2">
-                {isExpanded ? record.contents : truncateContent(record.contents)}
-              </p>
-              <button
-                onClick={toggleExpansion}
-                className="text-blue-500 hover:underline mt-2"
-              >
-                {isExpanded ? "See Less" : "See More"}
-              </button>
-            </div>
-          )}
+  <div className={styles.popupContentsText}>
+    <p className={styles.textGray600 + ' ' + styles.mt2}>
+      {isExpanded ? record.contents : truncateContent(record.contents)}
+    </p>
+    <button
+      onClick={toggleExpansion}
+      className={styles.seeMoreButton} /* Use new class here */
+    >
+      {isExpanded ? "See Less" : "See More"}
+    </button>
+  </div>
+)}
+
         </div>
       </div>
     </Popup>

@@ -1,3 +1,11 @@
+
+  
+  
+  
+
+  
+
+
 .popupContainer {
     width: 300px;
     max-width: 90vw;
@@ -54,7 +62,9 @@
 }
 
 .maximized .popupContent {
+
     max-height: 80vh; /* Allow more room for content when maximized */
+    max-width: 100vh;
     padding: 20px; /* Add more padding for a comfortable layout */
     overflow-y: auto; /* Ensure scrolling for overflowing content */
 }
@@ -62,4 +72,26 @@
 .popupContentsText {
     margin-top: 1rem;
     color: #555;
+    font-size: 14px;
+    line-height: 1.5;
 }
+
+.text-gray-600 {
+    color: #4a4a4a; /* Dark gray text */
+}
+
+.seeMoreButton {
+    color: #007bff; /* Blue color for the button */
+    background: none; /* Remove any default button styling */
+    border: none; /* No border */
+    cursor: pointer; /* Pointer cursor */
+    margin-top: 0.2rem; /*Reduce margin for spacing above*/
+    margin-bottom: 2rem; /* Add margin for spacing below */
+    font-size: 14px; /* Set font size */
+    display: inline-block; /* Ensure the button displays as inline */
+}
+
+.seeMoreButton:hover {
+    text-decoration: underline; /* Underline on hover */
+}
+
