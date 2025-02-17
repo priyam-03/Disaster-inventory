@@ -11,6 +11,7 @@ function buildFilters(year: string | null, month: string | null) {
       locations: {
         isEmpty: false,
       },
+      landslide_report:"yes"
     };
   }
   if (year) {
@@ -65,7 +66,7 @@ export async function GET(req: Request) {
     const articles = await db.articles_mod.findMany({
       where: filters,
     });
-
+    console.log(`Fetched ${articles.length} articles from the database`);
     // Filter the articles by state if the state parameter is provided
     const filtered_articles = articles.map((article) => {
       if (state) {
