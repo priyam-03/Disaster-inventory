@@ -14,7 +14,7 @@ model articles_mod {
   title           String
   link            String
   published       String
-  summary         String
+  summary         String?
   contents        String
   landslide_record LandslideRecord?  
   date            DateTime? @db.Date  

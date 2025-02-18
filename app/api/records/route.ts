@@ -11,6 +11,7 @@ function buildFilters(year: string | null, month: string | null) {
       locations: {
         isEmpty: false,
       },
+      landslide_report: "yes"
     };
   }
   if (year) {
@@ -64,7 +65,17 @@ export async function GET(req: Request) {
     // Fetch the data using Prisma with the built filters
     const articles = await db.articles_mod.findMany({
       where: filters,
+      select: {
+        id: true,
+        title: true,
+        link: true,
+        contents: true,
+        published: true,
+        date: true,
+        landslide_record: true,
+      },
     });
+    console.log(`Fetched ${articles.length} articles from the database`);
 
     // Filter the articles by state if the state parameter is provided
     const filtered_articles = articles.map((article) => {
