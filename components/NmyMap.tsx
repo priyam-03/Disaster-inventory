@@ -11,7 +11,7 @@ import { FaSpinner } from "react-icons/fa";
 import PopUp from "./popup";
 import { Record, Location } from "../types/records";
 import type { MarkerCluster } from 'leaflet';
-
+import LogoutBtn from '@/components/LogoutBtn'
 const months = [
   { value: "01", label: "January" },
   { value: "02", label: "February" },
@@ -220,6 +220,7 @@ export default function MyMap() {
             </div>
           )}
         </div>
+       
       </main>
     </div>
   );

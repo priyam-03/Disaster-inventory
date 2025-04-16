@@ -9,7 +9,7 @@ import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility
 import { FaSpinner } from "react-icons/fa"; // For the loading spinner
 import PopUp from "./popup";  // Custom popup component
 import { Record, Location } from "../types/records";
-
+import LogoutBtn from "@/components/LogoutBtn"; // Logout button component
 // Utility function for debouncing
 const debounce = (func: Function, delay: number) => {
   let timerId: NodeJS.Timeout;
@@ -210,6 +210,8 @@ export default function MyMap() {
 
           {error && <p>Error loading records: {error.message}</p>}
         </div>
+
+        
       </main>
     </div>
   );

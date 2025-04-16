@@ -20,6 +20,17 @@ model articles_mod {
   date            DateTime? @db.Date  
 }
 
+model automate_test {
+  id              String              @id @default(auto()) @map("_id") @db.ObjectId
+  title           String
+  link            String
+  published       String
+  summary         String?
+  contents        String
+  landslide_record LandslideRecord?  
+  date            DateTime? @db.Date  
+}
+
 type LandslideRecord {
   landslide_report String?
   source_name      String?
@@ -54,4 +65,13 @@ model Incident {
   lat     Float
   lon     Float
   state   String
+}
+
+model User{
+  id String @db.ObjectId @default(auto()) @map("_id") @id
+  email String
+  hashedPassword String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
