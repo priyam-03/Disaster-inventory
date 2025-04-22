@@ -17,7 +17,8 @@ model articles_mod {
   summary         String?
   contents        String
   landslide_record LandslideRecord?  
-  date            DateTime? @db.Date  
+  date            DateTime? @db.Date 
+  is_approved     Boolean @default(true)
 }
 
 model automate_test {
@@ -29,6 +30,7 @@ model automate_test {
   contents        String
   landslide_record LandslideRecord?  
   date            DateTime? @db.Date  
+  is_approved     Boolean @default(true)
 }
 
 type LandslideRecord {
