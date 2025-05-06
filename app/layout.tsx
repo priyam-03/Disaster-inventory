@@ -20,7 +20,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-zinc-100 text-blue-800 flex flex-col`}>
+      <body className={`${inter.className}  flex flex-col`}>
         <Header />
         <ReactQueryProvider>
           <main className="flex-grow">
