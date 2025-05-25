@@ -30,7 +30,7 @@ export async function GET(req: Request) {
    
 
     // Fetch the data using Prisma with the built filters
-    const articles = await db.automate_test.findMany({
+    const articles = await db.articles_mod.findMany({
         where: {
            
             date: {

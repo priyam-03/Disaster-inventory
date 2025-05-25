@@ -40,7 +40,7 @@ interface Article {
   is_approved?: boolean;
 }
 export default async function ArticleDetails({ params }: Props) {
-  const article = await db.automate_test.findUnique({
+  const article = await db.articles_mod.findUnique({
     where: { id: params.id },
     include: {
       landslide_record: {
@@ -50,7 +50,7 @@ export default async function ArticleDetails({ params }: Props) {
       },
     },
   }) as Article | null;
-
+  
   if (!article) return notFound();
 
   return (
