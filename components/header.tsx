@@ -12,7 +12,7 @@ export default async function Header() {
       <div className="flex items-center justify-between">
         {/* Centered Title with absolute center alignment */}
         <div className="absolute left-1/2 transform -translate-x-1/2">
-          <h1 className="text-4xl font-bold text-center">Landslide Records Map...</h1>
+          <h1 className="text-4xl font-bold text-center">Landslide Records Map</h1>
         </div>
   
         {/* Logout Button aligned right */}

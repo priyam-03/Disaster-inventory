@@ -37,7 +37,7 @@ const indianStates = [
   "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", 
   "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", 
   "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", 
-  "Uttar Pradesh", "Uttarakhand", "West Bengal", "Delhi"
+  "Uttar Pradesh", "Uttarakhand", "West Bengal", "Delhi" , "Jammu and Kashmir", "Ladakh"
 ];
 
 const fetchRecords = async (state: string, month: string, year: string) => {
