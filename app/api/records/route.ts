@@ -104,28 +104,21 @@ export async function GET(req: Request) {
     console.log(`Fetched ${articles.length} articles from the database`);
 
     // Filter the articles by state if the state parameter is provided
-    let filtered_articles = articles;
+    let filtered_articles: any = articles;
     
     if (state) {
-      filtered_articles = articles.map((article) => {
-        if (article.landslide_record) {
-          const locations = article.landslide_record.locations;
-          const filtered_location = locations.filter((location) => location.state_name === state);
-          
-          // Only return articles that have locations in the specified state
-          if (filtered_location.length > 0) {
-            return {
-              ...article,
-              landslide_record: {
-                ...article.landslide_record,
-                locations: filtered_location
-              }
-            };
+      filtered_articles = articles
+        .filter(article => 
+          article&&article.landslide_record &&
+          article.landslide_record.locations.some(location => location.state_name === state)
+        )
+        .map(article => ({
+          ...article,
+          landslide_record: {
+        ...article.landslide_record,
+        locations: article?.landslide_record?.locations.filter(location => location.state_name === state)
           }
-          return null; // Filter out articles with no matching locations
-        }
-        return null; // Filter out articles without landslide records
-      }).filter(article => article !== null); // Remove null entries
+        }));
     }
 
     console.log(`Final filtered articles count: ${filtered_articles.length}`);
