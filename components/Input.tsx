@@ -1,4 +1,4 @@
-import React, { ChangeEvent } from 'react'
+import React, { ChangeEvent, useState } from 'react'
 
 interface InputProps {
   value?: string;
@@ -11,28 +11,58 @@ interface InputProps {
 }
 
 export default function Input({
-  value, 
-  onChange, 
-  disabled, 
-  type = "text", 
+  value,
+  onChange,
+  disabled,
+  type = "text",
   label,
   placeholder,
   onKeyDown
 }: InputProps) {
+  const [isFocused, setIsFocused] = useState(false);
+  const isActive = isFocused || (value && value.length > 0);
+
   return (
-    <div className="relative w-full lg:w-[30rem]">
-      <input 
-        value={value}
-        onChange={onChange}
-        disabled={disabled}
-        type={type}
-        placeholder={placeholder}
-        onKeyDown={onKeyDown}
-        className="outline-none p-4 border-2 border-neutral-300 w-full rounded-md peer focus:border-blue-600 disabled:bg-neutral-200 transition-colors duration-200"
+    <div className="relative w-full group">
+      {/* Animated background glow */}
+      <div className={`absolute -inset-0.5 rounded-xl transition-all duration-300 opacity-0 blur-sm
+        ${isFocused ? 'opacity-100 bg-gradient-to-r from-brand-400/30 to-brand-600/30' : 'group-hover:opacity-50 bg-brand-200/20'}`}
       />
-      <label className='capitalize absolute top-0 left-3 scale-75 text-gray-700 peer-focus-within:scale-100 peer-focus-within:-top-3 peer-focus-within:text-blue-600 peer-focus-within:bg-white peer-focus-within:px-2 px-0 bg-transparent font-medium transition-all duration-200 ease-in-out'>
-        {label}
-      </label>
+
+      <div className="relative">
+        <input
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          type={type}
+          placeholder={isActive ? placeholder : ''}
+          onKeyDown={onKeyDown}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          className={`w-full px-4 pt-5 pb-2.5 text-sm text-surface-800 bg-white rounded-xl
+            border-2 outline-none transition-all duration-300
+            disabled:bg-surface-100 disabled:text-surface-400 disabled:cursor-not-allowed
+            ${isFocused
+              ? 'border-brand-500 shadow-[0_0_0_3px_rgba(99,102,241,0.12)]'
+              : 'border-surface-200 hover:border-surface-300'
+            }`}
+        />
+
+        {/* Floating label */}
+        <label className={`absolute left-4 transition-all duration-300 pointer-events-none font-medium
+          ${isActive
+            ? 'top-1.5 text-[11px] tracking-wide ' + (isFocused ? 'text-brand-600' : 'text-surface-400')
+            : 'top-1/2 -translate-y-1/2 text-sm text-surface-400'
+          }`}
+        >
+          {label}
+        </label>
+
+        {/* Active indicator line */}
+        <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] bg-gradient-to-r from-brand-400 to-brand-600 rounded-full
+          transition-all duration-300 ${isFocused ? 'w-[calc(100%-24px)]' : 'w-0'}`}
+        />
+      </div>
     </div>
   )
 }

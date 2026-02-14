@@ -17,12 +17,16 @@ export default function RegisterForm() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-  
+
     const [loading, setLoading] = useState(false);
 
     const router = useRouter();
-  
+
     const register = async () => {
+      if (!email || !password) {
+        toast.error("Please fill in all fields");
+        return;
+      }
       setLoading(true);
       try{
         await axios.post("/api/register", {
@@ -40,27 +44,46 @@ export default function RegisterForm() {
       }
     }
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        register();
+      }
+    }
+
     return (
-      <div className='space-y-5 flex flex-col items-center'>
-        <Input 
+      <div className='space-y-5 flex flex-col'>
+        <Input
           label='Email'
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={loading}
+          placeholder="name@example.com"
+          onKeyDown={handleKeyDown}
         />
-        <Input 
+        <Input
           label='Password'
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           disabled={loading}
           type='password'
+          placeholder="Create a password"
+          onKeyDown={handleKeyDown}
         />
-        <div
+        <button
           onClick={register}
-          className='px-10 py-3 bg-neutral-900 rounded-full text-white disabled:opacity-70 cursor-pointer'
+          disabled={loading}
+          className={`w-full py-3 px-10 rounded-xl text-white font-semibold text-sm
+            transition-all duration-300 mt-2 flex justify-center items-center gap-2
+            ${loading
+              ? 'bg-brand-400 cursor-not-allowed'
+              : 'bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 hover:shadow-glow active:scale-[0.98]'
+            }`}
         >
-          Register
-        </div>
-      </div>  
+          {loading && (
+            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          )}
+          {loading ? 'Creating Account...' : 'Create Account'}
+        </button>
+      </div>
     )
 }

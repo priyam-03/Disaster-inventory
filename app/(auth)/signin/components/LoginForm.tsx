@@ -21,13 +21,13 @@ export default function LoginForm() {
       toast.error("Please fill in all fields");
       return;
     }
-    
+
     setLoading(true);
 
     try {
       const login = await signIn("credentials", {
-        email, 
-        password, 
+        email,
+        password,
         redirect: false,
       });
 
@@ -52,8 +52,8 @@ export default function LoginForm() {
   }
 
   return (
-    <div className='space-y-6 flex flex-col items-center'>
-      <Input 
+    <div className='space-y-5 flex flex-col'>
+      <Input
         label='Email'
         value={email}
         onChange={(e) => setEmail(e.target.value)}
@@ -61,34 +61,44 @@ export default function LoginForm() {
         placeholder="name@example.com"
         onKeyDown={handleKeyDown}
       />
-      <Input 
+      <Input
         label='Password'
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         disabled={loading}
         type='password'
-        placeholder="••••••••"
+        placeholder="Enter your password"
         onKeyDown={handleKeyDown}
       />
-      
-      <div className="w-full lg:w-[30rem] flex justify-between items-center mt-2">
-        <div className="flex items-center">
-          <input id="remember" type="checkbox" className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
-          <label htmlFor="remember" className="ml-2 block text-sm text-gray-600">Remember me</label>
+
+      <div className="w-full flex justify-between items-center">
+        <div className="flex items-center gap-2 cursor-pointer group">
+          <input
+            id="remember"
+            type="checkbox"
+            className="h-4 w-4 rounded border-surface-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+          />
+          <label htmlFor="remember" className="text-sm text-surface-500 group-hover:text-surface-700 transition-colors cursor-pointer select-none">
+            Remember me
+          </label>
         </div>
-       
       </div>
-      
+
       <button
         onClick={login}
         disabled={loading}
-        className='w-full lg:w-[30rem] py-3 px-10 bg-blue-600 hover:bg-blue-700 rounded-full text-white disabled:opacity-70 cursor-pointer transition-colors duration-200 mt-4 font-medium flex justify-center items-center'
+        className={`w-full py-3 px-10 rounded-xl text-white font-semibold text-sm
+          transition-all duration-300 mt-1 flex justify-center items-center gap-2
+          ${loading
+            ? 'bg-brand-400 cursor-not-allowed'
+            : 'bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 hover:shadow-glow active:scale-[0.98]'
+          }`}
       >
-        {loading ? (
-          <span className="mr-2 w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin"></span>
-        ) : null}
-        {loading ? 'Signing in...' : 'Login'}
+        {loading && (
+          <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        )}
+        {loading ? 'Signing in...' : 'Sign In'}
       </button>
-    </div>  
+    </div>
   )
 }
