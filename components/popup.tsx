@@ -26,23 +26,30 @@ const PopUp = memo(({ record, location, locIndex: _locIndex }: { record: Record,
     setIsExpanded(prev => !prev);
   }, []);
 
-  // Reposition popup after CSS transition ends — avoids the fragile hardcoded 310ms timeout
+  // Reposition popup after ALL CSS transitions complete.
+  // transition:all fires a separate transitionend per property (width, max-height, etc).
+  // Debouncing ensures update() runs once after the last property finishes,
+  // so Leaflet always sees the final size and can autoPan to keep the popup in view.
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
+    let debounceTimer: ReturnType<typeof setTimeout>;
+
     const handleTransitionEnd = () => {
-      if (popupRef.current?._map) {
-        const originalAutoPan = popupRef.current.options.autoPan;
-        popupRef.current.options.autoPan = false;
-        popupRef.current.update();
-        popupRef.current.options.autoPan = originalAutoPan;
-      }
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        if (popupRef.current?._map) {
+          popupRef.current.update();
+        }
+      }, 20);
     };
 
-    // { once: true } auto-removes the listener after first fire
-    container.addEventListener('transitionend', handleTransitionEnd, { once: true });
-    return () => container.removeEventListener('transitionend', handleTransitionEnd);
+    container.addEventListener('transitionend', handleTransitionEnd);
+    return () => {
+      container.removeEventListener('transitionend', handleTransitionEnd);
+      clearTimeout(debounceTimer);
+    };
   }, [isMaximized, isExpanded]);
 
   return (
