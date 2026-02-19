@@ -14,16 +14,13 @@ const PopUp = ({ record, location, locIndex }: { record: Record, location: Locat
     setIsMaximized(prev => !prev);
   };
 
-  // Force Leaflet to recalculate popup dimensions after state changes
+  // Reposition popup after size changes without closing it
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (popupRef.current) {
-        const leafletPopup = popupRef.current;
-        if (leafletPopup._map) {
-          leafletPopup.update();
-        }
+      if (popupRef.current?._map) {
+        popupRef.current.update();
       }
-    }, 50);
+    }, 310); // wait for CSS transition (0.3s) to finish
     return () => clearTimeout(timer);
   }, [isMaximized, isExpanded]);
 
@@ -42,9 +39,9 @@ const PopUp = ({ record, location, locIndex }: { record: Record, location: Locat
   return (
     <Popup
       ref={popupRef}
-      maxWidth={isMaximized ? 560 : 320}
-      minWidth={isMaximized ? 360 : 280}
-      autoPan={true}
+      maxWidth={600}
+      minWidth={280}
+      autoPan={false}
       className={isMaximized ? 'popup-maximized' : ''}
     >
       <div className={`${styles.popupContainer} ${isMaximized ? styles.maximized : ''}`}>
