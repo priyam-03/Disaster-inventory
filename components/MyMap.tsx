@@ -372,15 +372,18 @@ export default function MyMap() {
             />
             <ZoomHandler />
             {!isLoading && records.map((record: Record, index: number) => (
-              record.landslide_record?.locations?.map((location: Location, locIndex: number) => (
-                <Marker
-                  key={`${index}-${locIndex}`}
-                  position={[location.lat, location.lon]}
-                  icon={DynamicIcon({ zoomLevel })}
-                >
-                  <PopUp record={record} location={location} locIndex={locIndex} />
-                </Marker>
-              ))
+              record.landslide_record?.locations?.map((location: Location, locIndex: number) => {
+                if (location.lat == null || location.lon == null || isNaN(location.lat) || isNaN(location.lon)) return null;
+                return (
+                  <Marker
+                    key={`${index}-${locIndex}`}
+                    position={[location.lat, location.lon]}
+                    icon={DynamicIcon({ zoomLevel })}
+                  >
+                    <PopUp record={record} location={location} locIndex={locIndex} />
+                  </Marker>
+                );
+              })
             ))}
           </MapContainer>
         </div>
