@@ -1,7 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -51,7 +51,8 @@ const fetchRecords = async (state: string, month: string, year: string, startDat
   return response.json();
 };
 
-const DynamicIcon = ({ zoomLevel }: { zoomLevel: number }) => {
+// Defined at module level — stable reference, never recreated on parent renders
+const createDynamicIcon = (zoomLevel: number) => {
   const iconSize: [number, number] = [zoomLevel * 2 + 10, zoomLevel * 2 + 10];
   return L.icon({
     iconUrl: "/map-marker.png",
@@ -61,9 +62,16 @@ const DynamicIcon = ({ zoomLevel }: { zoomLevel: number }) => {
   });
 };
 
+// Defined at module level — avoids remount on every parent render
+const ZoomHandler = ({ onZoom }: { onZoom: (zoom: number) => void }) => {
+  useMapEvents({
+    zoomend: (e) => onZoom(e.target.getZoom()),
+  });
+  return null;
+};
+
 export default function MyMap() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const [selectedYear, setSelectedYear] = useState<string>("2025");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [selectedState, setSelectedState] = useState<string>("");
@@ -86,8 +94,6 @@ export default function MyMap() {
     queryKey,
     enabled: isQueryEnabled,
     queryFn: async () => {
-      const cachedData = queryClient.getQueryData<Record[]>(queryKey);
-      if (cachedData) return cachedData;
       const data = await fetchRecords(
         selectedState,
         filterMode === 'monthYear' ? selectedMonth : '',
@@ -95,32 +101,46 @@ export default function MyMap() {
         filterMode === 'dateRange' ? startDate : '',
         filterMode === 'dateRange' ? endDate : ''
       );
-      queryClient.setQueryData(queryKey, data);
       return data.filtered_articles;
     },
   });
 
-  const totalMarkers = records.reduce((acc: number, record: Record) => {
-    return acc + (record.landslide_record?.locations?.length || 0);
-  }, 0);
+  // One icon object per zoom level, shared across all markers
+  const markerIcon = useMemo(() => createDynamicIcon(zoomLevel), [zoomLevel]);
 
-  const ZoomHandler = () => {
-    useMapEvents({
-      zoomend: (e) => setZoomLevel(e.target.getZoom()),
-    });
-    return null;
-  };
+  const totalMarkers = useMemo(() =>
+    records.reduce((acc: number, record: Record) => {
+      return acc + (record.landslide_record?.locations?.length || 0);
+    }, 0), [records]);
 
-  const clearFilters = () => {
+  const hasActiveFilters = useMemo(() =>
+    !!(selectedState || selectedMonth || selectedYear || startDate || endDate),
+    [selectedState, selectedMonth, selectedYear, startDate, endDate]);
+
+  const activeFilterCount = useMemo(() =>
+    [selectedState, selectedMonth, selectedYear, startDate, endDate].filter(Boolean).length,
+    [selectedState, selectedMonth, selectedYear, startDate, endDate]);
+
+  // Derived inline error — replaces blocking alert()
+  const dateErrorMessage = useMemo(() => {
+    if (filterMode === 'dateRange' && startDate && endDate && new Date(startDate) >= new Date(endDate)) {
+      return "Start date must be earlier than end date";
+    }
+    return "";
+  }, [filterMode, startDate, endDate]);
+
+  const handleZoom = useCallback((zoom: number) => setZoomLevel(zoom), []);
+
+  const clearFilters = useCallback(() => {
     setSelectedYear("2025");
     setSelectedMonth("");
     setSelectedState("");
     setStartDate("");
     setEndDate("");
     setFilterMode('monthYear');
-  };
+  }, []);
 
-  const handleFilterModeChange = (mode: 'monthYear' | 'dateRange') => {
+  const handleFilterModeChange = useCallback((mode: 'monthYear' | 'dateRange') => {
     setFilterMode(mode);
     if (mode === 'monthYear') {
       setStartDate("");
@@ -132,28 +152,15 @@ export default function MyMap() {
       setStartDate("2025-01-01");
       setEndDate("2025-12-31");
     }
-  };
+  }, []);
 
-  const handleStartDateChange = (value: string) => {
+  const handleStartDateChange = useCallback((value: string) => {
     setStartDate(value);
-    if (endDate && new Date(value) >= new Date(endDate)) {
-      alert("Start Date must be earlier than End Date");
-      setStartDate("");
-      setEndDate("");
-    }
-  };
+  }, []);
 
-  const handleEndDateChange = (value: string) => {
+  const handleEndDateChange = useCallback((value: string) => {
     setEndDate(value);
-    if (startDate && new Date(startDate) >= new Date(value)) {
-      alert("Start Date must be earlier than End Date");
-      setStartDate("");
-      setEndDate("");
-    }
-  };
-
-  const hasActiveFilters = selectedState || selectedMonth || selectedYear || startDate || endDate;
-  const activeFilterCount = [selectedState, selectedMonth, selectedYear, startDate, endDate].filter(Boolean).length;
+  }, []);
 
   return (
     <div className="flex h-[calc(100vh-120px)] relative">
@@ -302,6 +309,10 @@ export default function MyMap() {
                       focus:ring-2 focus:ring-brand-200 focus:border-brand-400"
                   />
                 </div>
+                {/* Inline date error — replaces blocking alert() */}
+                {dateErrorMessage && (
+                  <p className="text-xs text-red-500 font-medium">{dateErrorMessage}</p>
+                )}
               </>
             )}
 
@@ -370,7 +381,7 @@ export default function MyMap() {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
               url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
             />
-            <ZoomHandler />
+            <ZoomHandler onZoom={handleZoom} />
             {!isLoading && records.map((record: Record, index: number) => (
               record.landslide_record?.locations?.map((location: Location, locIndex: number) => {
                 if (location.lat == null || location.lon == null || isNaN(location.lat) || isNaN(location.lon)) return null;
@@ -378,7 +389,7 @@ export default function MyMap() {
                   <Marker
                     key={`${index}-${locIndex}`}
                     position={[location.lat, location.lon]}
-                    icon={DynamicIcon({ zoomLevel })}
+                    icon={markerIcon}
                   >
                     <PopUp record={record} location={location} locIndex={locIndex} />
                   </Marker>

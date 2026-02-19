@@ -10,7 +10,7 @@ const ReactQueryProvider = ({ children }: { children: React.ReactNode }) => {
         queries: {
           refetchOnWindowFocus: false,
           // retry: false,
-          staleTime: 1000,
+          staleTime: 6*60 * 60 * 1000, // 6 hours
           
         },
       },

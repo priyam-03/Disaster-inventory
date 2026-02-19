@@ -106,3 +106,76 @@
     color: #4338ca;
     text-decoration: none;
 }
+
+.locationSection {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 10px;
+}
+
+.locationRow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+}
+
+.locationIcon {
+    color: #6366f1;
+    font-size: 11px;
+    flex-shrink: 0;
+}
+
+.areaName {
+    margin: 0;
+    padding-left: 17px;
+}
+
+.address {
+    margin: 0;
+    padding-left: 17px;
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.publishedDate {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #94a3b8;
+    margin: 0 0 10px 0;
+}
+
+.dateIcon {
+    font-size: 10px;
+    flex-shrink: 0;
+}
+
+.sourceLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, #6366f1, #4338ca);
+    color: white;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    margin-bottom: 8px;
+    transition: opacity 0.2s;
+}
+
+.sourceLink:hover {
+    opacity: 0.85;
+}
+
+.linkIcon {
+    font-size: 10px;
+}
+
+.popupContentsText p {
+    margin: 0;
+}

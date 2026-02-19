@@ -1,46 +1,49 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback, memo } from "react";
 import { FaLink, FaExpand, FaCompress, FaCalendarAlt, FaMapMarkerAlt } from "react-icons/fa";
 import { Popup } from "react-leaflet";
 import styles from '../styles/popup.module.css';
 
 import { Record, Location } from "../types/records";
 
-const PopUp = ({ record, location, locIndex }: { record: Record, location: Location, locIndex: number }) => {
+// Defined outside component — no closure dependencies, never recreated
+const truncateContent = (content: string) => {
+  const maxChars = 150;
+  return content.length > maxChars ? content.slice(0, maxChars) + "..." : content;
+};
+
+const PopUp = memo(({ record, location, locIndex: _locIndex }: { record: Record, location: Location, locIndex: number }) => {
   const [isMaximized, setIsMaximized] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const popupRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const toggleMaximize = (e: React.MouseEvent) => {
+  const toggleMaximize = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setIsMaximized(prev => !prev);
-  };
+  }, []);
 
-  // Reposition popup after size changes without closing it
+  const toggleExpansion = useCallback(() => {
+    setIsExpanded(prev => !prev);
+  }, []);
+
+  // Reposition popup after CSS transition ends — avoids the fragile hardcoded 310ms timeout
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleTransitionEnd = () => {
       if (popupRef.current?._map) {
-        // Temporarily disable autoPan during update to prevent map movement
-        // from triggering Leaflet's popup-close event chain
         const originalAutoPan = popupRef.current.options.autoPan;
         popupRef.current.options.autoPan = false;
         popupRef.current.update();
         popupRef.current.options.autoPan = originalAutoPan;
       }
-    }, 310); // wait for CSS transition (0.3s) to finish
-    return () => clearTimeout(timer);
+    };
+
+    // { once: true } auto-removes the listener after first fire
+    container.addEventListener('transitionend', handleTransitionEnd, { once: true });
+    return () => container.removeEventListener('transitionend', handleTransitionEnd);
   }, [isMaximized, isExpanded]);
-
-  const toggleExpansion = () => {
-    setIsExpanded(!isExpanded);
-  };
-
-  const truncateContent = (content: string) => {
-    const maxChars = 150;
-    if (content.length > maxChars) {
-      return content.slice(0, maxChars) + "...";
-    }
-    return content;
-  };
 
   return (
     <Popup
@@ -52,7 +55,7 @@ const PopUp = ({ record, location, locIndex }: { record: Record, location: Locat
       autoPanPadding={[20, 20]}
       className={isMaximized ? 'popup-maximized' : ''}
     >
-      <div className={`${styles.popupContainer} ${isMaximized ? styles.maximized : ''}`}>
+      <div ref={containerRef} className={`${styles.popupContainer} ${isMaximized ? styles.maximized : ''}`}>
         {/* Header with gradient */}
         <div className={styles.popupHeader}>
           <span className={styles.popupTitle}>{record.title}</span>
@@ -64,30 +67,26 @@ const PopUp = ({ record, location, locIndex }: { record: Record, location: Locat
         <div className={styles.popupContent}>
           {/* Location details with icons */}
           {(location.village_name_town_name || location.area_name || location.address) && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '10px' }}>
+            <div className={styles.locationSection}>
               {location.village_name_town_name && (
-                <p style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
-                  <FaMapMarkerAlt style={{ color: '#6366f1', fontSize: '11px', flexShrink: 0 }} />
+                <p className={styles.locationRow}>
+                  <FaMapMarkerAlt className={styles.locationIcon} />
                   <span>{location.village_name_town_name}</span>
                 </p>
               )}
               {location.area_name && (
-                <p style={{ margin: 0, paddingLeft: '17px' }}>
-                  {location.area_name}
-                </p>
+                <p className={styles.areaName}>{location.area_name}</p>
               )}
               {location.address && (
-                <p style={{ margin: 0, paddingLeft: '17px', fontSize: '12px', color: '#94a3b8' }}>
-                  {location.address}
-                </p>
+                <p className={styles.address}>{location.address}</p>
               )}
             </div>
           )}
 
           {/* Published date */}
           {record.published && (
-            <p style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#94a3b8', margin: '0 0 10px 0' }}>
-              <FaCalendarAlt style={{ fontSize: '10px', flexShrink: 0 }} />
+            <p className={styles.publishedDate}>
+              <FaCalendarAlt className={styles.dateIcon} />
               {record.published}
             </p>
           )}
@@ -98,22 +97,9 @@ const PopUp = ({ record, location, locIndex }: { record: Record, location: Locat
               href={record.link}
               target="_blank"
               rel="noopener noreferrer"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 14px',
-                background: 'linear-gradient(135deg, #6366f1, #4338ca)',
-                color: 'white',
-                borderRadius: '8px',
-                fontSize: '12px',
-                fontWeight: 600,
-                textDecoration: 'none',
-                marginBottom: '8px',
-                transition: 'opacity 0.2s',
-              }}
+              className={styles.sourceLink}
             >
-              <FaLink style={{ fontSize: '10px' }} />
+              <FaLink className={styles.linkIcon} />
               View Source
             </a>
           )}
@@ -121,7 +107,7 @@ const PopUp = ({ record, location, locIndex }: { record: Record, location: Locat
           {/* Content text */}
           {record.contents && (
             <div className={styles.popupContentsText}>
-              <p style={{ margin: 0 }}>
+              <p>
                 {isExpanded ? record.contents : truncateContent(record.contents)}
               </p>
               {record.contents.length > 150 && (
@@ -138,6 +124,8 @@ const PopUp = ({ record, location, locIndex }: { record: Record, location: Locat
       </div>
     </Popup>
   );
-};
+});
+
+PopUp.displayName = 'PopUp';
 
 export default PopUp;
