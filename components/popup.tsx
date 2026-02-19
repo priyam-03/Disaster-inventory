@@ -10,7 +10,8 @@ const PopUp = ({ record, location, locIndex }: { record: Record, location: Locat
   const [isExpanded, setIsExpanded] = useState(false);
   const popupRef = useRef<any>(null);
 
-  const toggleMaximize = () => {
+  const toggleMaximize = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setIsMaximized(prev => !prev);
   };
 
@@ -18,7 +19,12 @@ const PopUp = ({ record, location, locIndex }: { record: Record, location: Locat
   useEffect(() => {
     const timer = setTimeout(() => {
       if (popupRef.current?._map) {
+        // Temporarily disable autoPan during update to prevent map movement
+        // from triggering Leaflet's popup-close event chain
+        const originalAutoPan = popupRef.current.options.autoPan;
+        popupRef.current.options.autoPan = false;
         popupRef.current.update();
+        popupRef.current.options.autoPan = originalAutoPan;
       }
     }, 310); // wait for CSS transition (0.3s) to finish
     return () => clearTimeout(timer);
