@@ -35,11 +35,16 @@ export default function LoginForm() {
         toast.success("Login successful!");
         window.location.assign("/home");
       }
-      else if(login?.error){
+      else {
         const errorMap: Record<string, string> = {
           CredentialsSignin: "Invalid email or password. Please try again.",
+          "Invalid credentials": "Invalid email or password. Please try again.",
+          "Missing credentials": "Please fill in all fields.",
         };
-        toast.error(errorMap[login.error] ?? "Login failed. Please try again.");
+        const message = login?.error
+          ? (errorMap[login.error] ?? "Invalid email or password. Please try again.")
+          : "Invalid email or password. Please try again.";
+        toast.error(message);
       }
     } catch (error) {
       toast.error("An error occurred. Please try again.");

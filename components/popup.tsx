@@ -41,7 +41,9 @@ const PopUp = ({ record, location, locIndex }: { record: Record, location: Locat
       ref={popupRef}
       maxWidth={600}
       minWidth={280}
-      autoPan={false}
+      autoPan={true}
+      keepInView={true}
+      autoPanPadding={[20, 20]}
       className={isMaximized ? 'popup-maximized' : ''}
     >
       <div className={`${styles.popupContainer} ${isMaximized ? styles.maximized : ''}`}>
