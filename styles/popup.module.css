@@ -3,9 +3,10 @@
     max-height: min(340px, 60vh);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
-    background-color: #fff;
+    background-color: #f8fafc;
     border-radius: 12px;
     position: relative;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .maximized {
@@ -75,18 +76,20 @@
 
 .popupContent p {
     font-size: 13px;
-    color: #475569;
+    color: #1e293b;
     margin: 0 0 6px 0;
     line-height: 1.5;
+    font-weight: 500;
 }
 
 .popupContentsText {
     margin-top: 12px;
     padding-top: 12px;
     border-top: 1px solid #e2e8f0;
-    color: #64748b;
+    color: #1f2937;
     font-size: 13px;
     line-height: 1.6;
+    font-weight: 500;
 }
 
 .seeMoreButton {
@@ -136,7 +139,8 @@
     margin: 0;
     padding-left: 17px;
     font-size: 12px;
-    color: #94a3b8;
+    color: #475569;
+    font-weight: 500;
 }
 
 .publishedDate {
@@ -144,8 +148,9 @@
     align-items: center;
     gap: 6px;
     font-size: 12px;
-    color: #94a3b8;
+    color: #475569;
     margin: 0 0 10px 0;
+    font-weight: 500;
 }
 
 .dateIcon {
