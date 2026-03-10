@@ -1,138 +1,67 @@
-import { useState, useRef, useEffect, useCallback, memo } from "react";
-import { FaLink, FaExpand, FaCompress, FaCalendarAlt, FaMapMarkerAlt } from "react-icons/fa";
+import { useRef, memo } from "react";
+import { FaTimes } from "react-icons/fa";
 import { Popup } from "react-leaflet";
 import styles from '../styles/popup.module.css';
-
 import { Record, Location } from "../types/records";
 
-// Defined outside component — no closure dependencies, never recreated
-const truncateContent = (content: string) => {
-  const maxChars = 150;
-  return content.length > maxChars ? content.slice(0, maxChars) + "..." : content;
-};
-
-const PopUp = memo(({ record, location, locIndex: _locIndex }: { record: Record, location: Location, locIndex: number }) => {
-  const [isMaximized, setIsMaximized] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+const PopUp = memo(({ record, location }: { record: Record, location: Location, locIndex: number }) => {
   const popupRef = useRef<any>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
-  const toggleMaximize = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsMaximized(prev => !prev);
-  }, []);
+  const rows: { label: string; value: string | number }[] = [];
 
-  const toggleExpansion = useCallback(() => {
-    setIsExpanded(prev => !prev);
-  }, []);
-
-  // Reposition popup after ALL CSS transitions complete.
-  // transition:all fires a separate transitionend per property (width, max-height, etc).
-  // Debouncing ensures update() runs once after the last property finishes,
-  // so Leaflet always sees the final size and can autoPan to keep the popup in view.
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    let debounceTimer: ReturnType<typeof setTimeout>;
-
-    const handleTransitionEnd = () => {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        if (popupRef.current?._map) {
-          popupRef.current.update();
-        }
-      }, 20);
-    };
-
-    container.addEventListener('transitionend', handleTransitionEnd);
-    return () => {
-      container.removeEventListener('transitionend', handleTransitionEnd);
-      clearTimeout(debounceTimer);
-    };
-  }, [isMaximized, isExpanded]);
+  if (location.village_name_town_name) rows.push({ label: "Location", value: location.village_name_town_name });
+  if (location.area_name) rows.push({ label: "Area", value: location.area_name });
+  if (location.district_name) rows.push({ label: "District", value: location.district_name });
+  if (location.state_name) rows.push({ label: "State", value: location.state_name });
+  if (location.date) rows.push({ label: "Date", value: location.date });
+  else if (record.published) rows.push({ label: "Date", value: record.published });
+  if (location.landslide_type) rows.push({ label: "Type", value: location.landslide_type });
+  if (location.landslide_size) rows.push({ label: "Size", value: location.landslide_size });
+  if (location.triggering_factor) rows.push({ label: "Trigger", value: location.triggering_factor });
 
   return (
     <Popup
       ref={popupRef}
-      maxWidth={600}
-      minWidth={280}
+      maxWidth={320}
+      minWidth={240}
       autoPan={true}
       keepInView={true}
       autoPanPadding={[20, 20]}
-      className={isMaximized ? 'popup-maximized' : ''}
     >
-      <div ref={containerRef} className={`${styles.popupContainer} ${isMaximized ? styles.maximized : ''}`}>
-        {/* Header with gradient */}
-        <div className={styles.popupHeader}>
-          <span className={styles.popupTitle}>{record.title}</span>
-          <button className={styles.popupToggle} onClick={toggleMaximize} title={isMaximized ? "Minimize" : "Expand"}>
-            {isMaximized ? <FaCompress size={12} /> : <FaExpand size={12} />}
-          </button>
+      <div className={styles.card}>
+        {/* Header */}
+        <div className={styles.header}>
+          <span className={styles.headerTitle}>{record.title}</span>
         </div>
 
-        <div className={styles.popupContent}>
-          {/* Location details with icons */}
-          {(location.village_name_town_name || location.area_name || location.address) && (
-            <div className={styles.locationSection}>
-              {location.village_name_town_name && (
-                <p className={styles.locationRow}>
-                  <FaMapMarkerAlt className={styles.locationIcon} />
-                  <span>{location.village_name_town_name}</span>
-                </p>
-              )}
-              {location.area_name && (
-                <p className={styles.areaName}>{location.area_name}</p>
-              )}
-              {location.address && (
-                <p className={styles.address}>{location.address}</p>
-              )}
+        {/* Rows */}
+        <div className={styles.body}>
+          {rows.map((row, i) => (
+            <div key={i} className={`${styles.row} ${i % 2 === 0 ? styles.rowEven : styles.rowOdd}`}>
+              <span className={styles.label}>{row.label}</span>
+              <span className={styles.value}>{row.value}</span>
             </div>
-          )}
+          ))}
+        </div>
 
-          {/* Published date */}
-          {record.published && (
-            <p className={styles.publishedDate}>
-              <FaCalendarAlt className={styles.dateIcon} />
-              {record.published}
-            </p>
-          )}
+        {/* Footer */}
+        <div className={styles.footer}>
+          <span className={styles.footerLabel}>Lat / Lon</span>
+          <span className={styles.footerValue}>{location.lat} / {location.lon}</span>
+        </div>
 
-          {/* Link button */}
-          {record.link && (
-            <a
-              href={record.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.sourceLink}
-            >
-              <FaLink className={styles.linkIcon} />
+        {/* Source link */}
+        {record.link && (
+          <div className={styles.linkRow}>
+            <a href={record.link} target="_blank" rel="noopener noreferrer" className={styles.sourceLink}>
               View Source
             </a>
-          )}
-
-          {/* Content text */}
-          {record.contents && (
-            <div className={styles.popupContentsText}>
-              <p>
-                {isExpanded ? record.contents : truncateContent(record.contents)}
-              </p>
-              {record.contents.length > 150 && (
-                <button
-                  onClick={toggleExpansion}
-                  className={styles.seeMoreButton}
-                >
-                  {isExpanded ? "Show Less" : "Read More"}
-                </button>
-              )}
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </Popup>
   );
 });
 
 PopUp.displayName = 'PopUp';
-
 export default PopUp;

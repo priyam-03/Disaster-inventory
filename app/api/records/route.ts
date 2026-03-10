@@ -91,7 +91,6 @@ export async function GET(req: Request) {
         id: true,
         title: true,
         link: true,
-        contents: true,
         published: true,
         date: true,
         landslide_record: true,

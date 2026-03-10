@@ -30,7 +30,5 @@ export interface Location {
     title: string;
     link: string;
     published: string;
-    summary: string;
-    contents: string;
     landslide_record?: LandslideRecord; // Optional LandslideRecord
   }
