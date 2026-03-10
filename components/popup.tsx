@@ -1,5 +1,5 @@
 import { useRef, memo } from "react";
-import { FaTimes } from "react-icons/fa";
+import { FaExternalLinkAlt } from "react-icons/fa";
 import { Popup } from "react-leaflet";
 import styles from '../styles/popup.module.css';
 import { Record, Location } from "../types/records";
@@ -54,7 +54,8 @@ const PopUp = memo(({ record, location }: { record: Record, location: Location, 
         {record.link && (
           <div className={styles.linkRow}>
             <a href={record.link} target="_blank" rel="noopener noreferrer" className={styles.sourceLink}>
-              View Source
+              <span>View Source</span>
+              <FaExternalLinkAlt size={9} />
             </a>
           </div>
         )}
