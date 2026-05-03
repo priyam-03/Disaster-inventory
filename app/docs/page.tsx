@@ -235,7 +235,7 @@ export default function DocsPage() {
       <Section id="notes" title="Notes">
         <ul className="list-disc list-inside space-y-2 text-slate-600 text-sm leading-relaxed">
           <li>Results are always ordered by <code className="text-indigo-600 font-mono">date</code> descending (newest first).</li>
-          <li>When filtering by <code className="text-indigo-600 font-mono">state</code>, only locations matching that state are returned inside each article's <code className="text-indigo-600 font-mono">locations</code> array.</li>
+          <li>When filtering by <code className="text-indigo-600 font-mono">state</code>, only locations matching that state are returned inside each article&apos;s <code className="text-indigo-600 font-mono">locations</code> array.</li>
           <li><code className="text-indigo-600 font-mono">month</code> must be used together with <code className="text-indigo-600 font-mono">year</code>; it has no effect on its own.</li>
           <li><code className="text-indigo-600 font-mono">startDate</code> and <code className="text-indigo-600 font-mono">endDate</code> must both be provided for range filtering to apply.</li>
           <li>Articles where <code className="text-indigo-600 font-mono">landslide_record</code> is <code className="text-indigo-600 font-mono">null</code> may still appear in results when no filters are applied.</li>
