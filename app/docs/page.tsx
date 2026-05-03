@@ -104,7 +104,7 @@ export default function DocsPage() {
         </p>
       </Section>
 
-      {/* Example Requests */}
+      {/* Example Requests */ }
       <Section id="examples" title="Example Requests">
         <div className="space-y-4">
           {[
