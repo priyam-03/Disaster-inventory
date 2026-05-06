@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { ApiTester } from './ApiTester';
 
 export const metadata: Metadata = {
   title: 'API Documentation — Landslide Records',
@@ -14,11 +15,12 @@ const INDIAN_STATES = [
   'Jammu and Kashmir', 'Ladakh',
 ];
 
-function Badge({ children, color = 'green' }: { children: React.ReactNode; color?: 'green' | 'blue' | 'slate' }) {
+function Badge({ children, color = 'green' }: { children: React.ReactNode; color?: 'green' | 'blue' | 'slate' | 'amber' }) {
   const colors = {
     green: 'bg-emerald-100 text-emerald-700',
     blue: 'bg-indigo-100 text-indigo-700',
     slate: 'bg-slate-100 text-slate-600',
+    amber: 'bg-amber-100 text-amber-700',
   };
   return (
     <span className={`inline-block px-2 py-0.5 rounded text-xs font-mono font-semibold ${colors[color]}`}>
@@ -69,39 +71,102 @@ function Section({ id, title, children }: { id: string; title: string; children:
   );
 }
 
+function Divider({ label }: { label: string }) {
+  return (
+    <div className="mt-16 mb-10">
+      <div className="h-px bg-slate-200 mb-10" />
+      <p className="text-xs font-semibold uppercase tracking-widest text-indigo-500 mb-1">API Reference</p>
+      <h1 className="text-3xl font-bold text-slate-900 mb-2">{label}</h1>
+    </div>
+  );
+}
+
 export default function DocsPage() {
   return (
     <div className="max-w-4xl mx-auto py-10 px-4">
 
-      {/* Header */}
+      {/* ------------------------------------------------------------------ */}
+      {/* Page Header                                                         */}
+      {/* ------------------------------------------------------------------ */}
       <div className="mb-10">
         <p className="text-xs font-semibold uppercase tracking-widest text-indigo-500 mb-1">API Reference</p>
         <h1 className="text-3xl font-bold text-slate-900 mb-2">Landslide Records API</h1>
-        <p className="text-slate-500">Public REST API for accessing landslide news records across India.</p>
+        <p className="text-slate-500">REST API for accessing landslide news records across India. All endpoints require an API key.</p>
       </div>
 
-      {/* Endpoint header */}
-      <div className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-5 py-4 mb-10 shadow-sm">
+      {/* ------------------------------------------------------------------ */}
+      {/* API Index                                                           */}
+      {/* ------------------------------------------------------------------ */}
+      <Section id="index" title="Available Endpoints">
+        <div className="space-y-3">
+          {[
+            {
+              method: 'GET',
+              path: '/api/records-org',
+              description: 'List of landslide articles with nested locations array. One record per article.',
+              auth: true,
+            },
+            {
+              method: 'GET',
+              path: '/api/article-locations',
+              description: 'Flat list of landslide locations. One record per location, enriched with parent article metadata.',
+              auth: true,
+            },
+          ].map(({ method, path, description, auth }) => (
+            <a
+              key={path}
+              href={`#${path.replace('/api/', '')}`}
+              className="flex items-start gap-4 bg-white border border-slate-200 rounded-xl px-5 py-4 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all group"
+            >
+              <Badge color="green">{method}</Badge>
+              <div className="flex-1 min-w-0">
+                <p className="font-mono text-slate-800 font-medium group-hover:text-indigo-600 transition-colors">{path}</p>
+                <p className="text-sm text-slate-500 mt-0.5">{description}</p>
+              </div>
+              {auth && <Badge color="amber">API Key</Badge>}
+            </a>
+          ))}
+        </div>
+
+        <div className="mt-6 bg-amber-50 border border-amber-200 rounded-lg px-5 py-4 text-sm text-amber-800">
+          <strong>Authentication:</strong> All endpoints require an <code className="font-mono">X-API-Key</code> header.
+          Contact the administrator to obtain your API key.
+        </div>
+      </Section>
+
+      {/* ================================================================== */}
+      {/* /api/records-org                                                    */}
+      {/* ================================================================== */}
+
+      <Divider label="Records API" />
+      <p className="text-slate-500 -mt-6 mb-10">Returns landslide articles with a nested locations array. One record per article.</p>
+
+      <div id="records-org" className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-5 py-4 mb-10 shadow-sm">
         <Badge color="green">GET</Badge>
-        <span className="font-mono text-slate-800 font-medium">/api/records</span>
-        <span className="ml-auto text-xs text-slate-400">No authentication required</span>
+        <span className="font-mono text-slate-800 font-medium">/api/records-org</span>
+        <Badge color="amber">API Key</Badge>
       </div>
 
-      {/* Overview */}
-      <Section id="overview" title="Overview">
+      <Section id="records-org-overview" title="Overview">
         <p className="text-slate-600 leading-relaxed">
           Returns a list of landslide-related news articles extracted from various Indian news sources.
-          Each article includes structured landslide data such as location, type, triggering factor, and
-          casualty information. Results are ordered by date descending (newest first).
+          Each article includes a structured <code className="text-indigo-600 font-mono">landslide_record</code> object
+          containing a <code className="text-indigo-600 font-mono">locations</code> array with all landslide events
+          reported in that article. Results are ordered by date descending (newest first).
         </p>
       </Section>
 
-      {/* Query Parameters */}
-      <Section id="parameters" title="Query Parameters">
+      <Section id="records-org-auth" title="Authentication">
+        <p className="text-slate-600 text-sm mb-3">Pass your API key in the request header:</p>
+        <CodeBlock code={`X-API-Key: your-secret-key`} />
+        <p className="text-sm text-slate-500 mt-3">Missing or incorrect keys return <code className="text-indigo-600 font-mono">401 Unauthorized</code>.</p>
+      </Section>
+
+      <Section id="records-org-parameters" title="Query Parameters">
         <Table
           headers={['Parameter', 'Type', 'Required', 'Description']}
           rows={[
-            [<code key="s" className="text-indigo-600 font-mono">state</code>, 'string', 'No', 'Filter by Indian state name (e.g. Kerala, Uttarakhand)'],
+            [<code key="s" className="text-indigo-600 font-mono">state</code>, 'string', 'No', 'Filter by Indian state name — matched against location.state_name (case-insensitive)'],
             [<code key="y" className="text-indigo-600 font-mono">year</code>, 'string', 'No', 'Filter by year (e.g. 2023)'],
             [<code key="m" className="text-indigo-600 font-mono">month</code>, 'string', 'No', '2-digit month (e.g. 07). Must be used with year.'],
             [<code key="sd" className="text-indigo-600 font-mono">startDate</code>, 'string', 'No', 'Range start in YYYY-MM-DD. Must be used with endDate.'],
@@ -113,16 +178,29 @@ export default function DocsPage() {
         </p>
       </Section>
 
-      {/* Example Requests */ }
-      <Section id="examples" title="Example Requests">
+      <Section id="records-org-states" title="Valid State Values">
+        <p className="text-slate-600 text-sm mb-3">
+          The <code className="text-indigo-600 font-mono">state</code> filter is matched case-insensitively. Use the exact names below for reliable results:
+        </p>
+        <div className="flex flex-wrap gap-2 mt-3">
+          {INDIAN_STATES.map((s) => (
+            <code key={s} className="bg-slate-100 text-slate-700 text-xs font-mono px-2 py-1 rounded">{s}</code>
+          ))}
+        </div>
+        <p className="text-sm text-slate-500 mt-4">
+          Example: <code className="text-indigo-600 font-mono">?state=Uttarakhand</code> and <code className="text-indigo-600 font-mono">?state=uttarakhand</code> both work.
+        </p>
+      </Section>
+
+      <Section id="records-org-examples" title="Example Requests">
         <div className="space-y-4">
           {[
-            { label: 'All records', code: 'GET /api/records' },
-            { label: 'Filter by state', code: 'GET /api/records?state=Kerala' },
-            { label: 'Filter by year', code: 'GET /api/records?year=2023' },
-            { label: 'Filter by month and year', code: 'GET /api/records?year=2023&month=07' },
-            { label: 'Filter by date range', code: 'GET /api/records?startDate=2023-06-01&endDate=2023-08-31' },
-            { label: 'State + date range', code: 'GET /api/records?state=Uttarakhand&startDate=2023-06-01&endDate=2023-08-31' },
+            { label: 'All records', code: 'GET /api/records-org\nX-API-Key: your-secret-key' },
+            { label: 'Filter by state', code: 'GET /api/records-org?state=Kerala\nX-API-Key: your-secret-key' },
+            { label: 'Filter by year', code: 'GET /api/records-org?year=2023\nX-API-Key: your-secret-key' },
+            { label: 'Filter by month and year', code: 'GET /api/records-org?year=2023&month=07\nX-API-Key: your-secret-key' },
+            { label: 'Filter by date range', code: 'GET /api/records-org?startDate=2023-06-01&endDate=2023-08-31\nX-API-Key: your-secret-key' },
+            { label: 'State + date range', code: 'GET /api/records-org?state=Uttarakhand&startDate=2023-06-01&endDate=2023-08-31\nX-API-Key: your-secret-key' },
           ].map(({ label, code }) => (
             <div key={label}>
               <p className="text-sm font-medium text-slate-600 mb-1">{label}</p>
@@ -132,8 +210,11 @@ export default function DocsPage() {
         </div>
       </Section>
 
-      {/* Response */}
-      <Section id="response" title="Response — 200 OK">
+      <Section id="records-org-try" title="Try It">
+        <ApiTester endpoint="/api/records-org" />
+      </Section>
+
+      <Section id="records-org-response" title="Response — 200 OK">
         <CodeBlock code={`{
   "filtered_articles": [
     {
@@ -231,17 +312,26 @@ export default function DocsPage() {
         />
       </Section>
 
-      {/* Error */}
-      <Section id="errors" title="Error Response">
-        <div className="flex items-center gap-3 mb-2">
-          <Badge color="slate">500</Badge>
-          <span className="text-sm text-slate-600">Internal Server Error</span>
+      <Section id="records-org-errors" title="Error Responses">
+        <div className="space-y-4">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <Badge color="slate">401</Badge>
+              <span className="text-sm text-slate-600">Unauthorized — missing or invalid API key</span>
+            </div>
+            <CodeBlock code={`{ "error": "Invalid or missing API key. Pass it as the X-API-Key request header." }`} />
+          </div>
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <Badge color="slate">500</Badge>
+              <span className="text-sm text-slate-600">Internal Server Error</span>
+            </div>
+            <CodeBlock code={`{ "error": "Failed to fetch data" }`} />
+          </div>
         </div>
-        <CodeBlock code={`{ "error": "Failed to fetch data" }`} />
       </Section>
 
-      {/* Notes */}
-      <Section id="notes" title="Notes">
+      <Section id="records-org-notes" title="Notes">
         <ul className="list-disc list-inside space-y-2 text-slate-600 text-sm leading-relaxed">
           <li>Results are always ordered by <code className="text-indigo-600 font-mono">date</code> descending (newest first).</li>
           <li>When filtering by <code className="text-indigo-600 font-mono">state</code>, only locations matching that state are returned inside each article&apos;s <code className="text-indigo-600 font-mono">locations</code> array.</li>
@@ -251,28 +341,24 @@ export default function DocsPage() {
         </ul>
       </Section>
 
-      {/* ------------------------------------------------------------------ */}
+      {/* ================================================================== */}
       {/* /api/article-locations                                              */}
-      {/* ------------------------------------------------------------------ */}
+      {/* ================================================================== */}
 
-      <div className="mt-16 mb-10">
-        <div className="h-px bg-slate-200 mb-10" />
-        <p className="text-xs font-semibold uppercase tracking-widest text-indigo-500 mb-1">API Reference</p>
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Article Locations API</h1>
-        <p className="text-slate-500">Returns one record per landslide location — each enriched with its parent article&apos;s metadata. Requires an API key.</p>
-      </div>
+      <Divider label="Article Locations API" />
+      <p className="text-slate-500 -mt-6 mb-10">Returns one record per location — each enriched with its parent article&apos;s metadata. Useful for map rendering or per-location analysis.</p>
 
-      <div className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-5 py-4 mb-10 shadow-sm">
+      <div id="article-locations" className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-5 py-4 mb-10 shadow-sm">
         <Badge color="green">GET</Badge>
         <span className="font-mono text-slate-800 font-medium">/api/article-locations</span>
-        <span className="ml-auto text-xs text-slate-400">Requires X-API-Key header</span>
+        <Badge color="amber">API Key</Badge>
       </div>
 
       <Section id="al-overview" title="Overview">
         <p className="text-slate-600 leading-relaxed">
-          Unlike <code className="text-indigo-600 font-mono">/api/records</code> which returns one article with a nested <code className="text-indigo-600 font-mono">locations</code> array,
-          this endpoint <strong>flattens</strong> that array. A single article reporting three locations produces three separate records here — each carrying the article&apos;s
-          title, link, and date alongside the individual location data. Useful for map rendering or per-location analysis.
+          Unlike <code className="text-indigo-600 font-mono">/api/records-org</code> which returns one article with a nested <code className="text-indigo-600 font-mono">locations</code> array,
+          this endpoint <strong>flattens</strong> that array. A single article reporting three locations produces three separate records — each carrying the article&apos;s
+          title, link, and date alongside the individual location data.
         </p>
       </Section>
 
@@ -305,9 +391,7 @@ export default function DocsPage() {
         </p>
         <div className="flex flex-wrap gap-2 mt-3">
           {INDIAN_STATES.map((s) => (
-            <code key={s} className="bg-slate-100 text-slate-700 text-xs font-mono px-2 py-1 rounded">
-              {s}
-            </code>
+            <code key={s} className="bg-slate-100 text-slate-700 text-xs font-mono px-2 py-1 rounded">{s}</code>
           ))}
         </div>
         <p className="text-sm text-slate-500 mt-4">
@@ -318,7 +402,7 @@ export default function DocsPage() {
       <Section id="al-examples" title="Example Requests">
         <div className="space-y-4">
           {[
-            { label: 'All locations (API key required)', code: 'GET /api/article-locations\nX-API-Key: your-secret-key' },
+            { label: 'All locations', code: 'GET /api/article-locations\nX-API-Key: your-secret-key' },
             { label: 'Filter by state', code: 'GET /api/article-locations?state=Kerala\nX-API-Key: your-secret-key' },
             { label: 'Filter by year', code: 'GET /api/article-locations?year=2024\nX-API-Key: your-secret-key' },
             { label: 'Filter by month and year', code: 'GET /api/article-locations?year=2024&month=07\nX-API-Key: your-secret-key' },
@@ -331,6 +415,10 @@ export default function DocsPage() {
             </div>
           ))}
         </div>
+      </Section>
+
+      <Section id="al-try" title="Try It">
+        <ApiTester endpoint="/api/article-locations" />
       </Section>
 
       <Section id="al-response" title="Response — 200 OK">
@@ -437,7 +525,7 @@ export default function DocsPage() {
         <ul className="list-disc list-inside space-y-2 text-slate-600 text-sm leading-relaxed">
           <li>One article with <em>N</em> locations produces <em>N</em> records in the response.</li>
           <li>Results are ordered by <code className="text-indigo-600 font-mono">article_date</code> descending (newest first).</li>
-          <li>State filtering is case-insensitive and matches on the <code className="text-indigo-600 font-mono">state_name</code> field inside each location, not on the article level.</li>
+          <li>State filtering is case-insensitive and matches on the <code className="text-indigo-600 font-mono">state_name</code> field inside each location.</li>
           <li>Locations without a <code className="text-indigo-600 font-mono">state_name</code> are excluded when the <code className="text-indigo-600 font-mono">state</code> filter is active.</li>
           <li><code className="text-indigo-600 font-mono">month</code> must be used together with <code className="text-indigo-600 font-mono">year</code>; it has no effect on its own.</li>
           <li><code className="text-indigo-600 font-mono">startDate</code> and <code className="text-indigo-600 font-mono">endDate</code> must both be provided for range filtering to apply.</li>
